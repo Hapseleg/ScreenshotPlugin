@@ -1,10 +1,10 @@
-﻿using Dalamud.Game.Command;
+using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
-using System.IO;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using SamplePlugin.Windows;
+using System.Drawing.Imaging;
 
 namespace SamplePlugin;
 
@@ -21,6 +21,24 @@ public sealed class Plugin : IDalamudPlugin
     public readonly WindowSystem WindowSystem = new("SamplePlugin");
     private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }
+
+    private static void TakeScreenshot(string command, string args)
+    {
+        Rectangle bounds = Screen.GetBounds(Point.Empty);
+        int w = bounds.Width;
+        int h = bounds.Height;
+
+        using (Bitmap bitmap = new Bitmap(w, h))
+        {
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                g.CopyFromScreen(Point.Empty, Point.Empty, bounds.Size);
+
+            }
+            bitmap.MakeTransparent(Color.Green);
+            bitmap.Save("C:\\Users\\hapse\\Screenshotplugin\\test.png", ImageFormat.Png);
+        }
+    }
 
     public Plugin()
     {
@@ -39,6 +57,14 @@ public sealed class Plugin : IDalamudPlugin
         {
             HelpMessage = "A useful message to display in /xlhelp"
         });
+
+
+        CommandManager.AddHandler("/abe", new CommandInfo(TakeScreenshot)
+        {
+            HelpMessage = "A useful message to display in /xlhelp"
+        });
+
+       
 
         PluginInterface.UiBuilder.Draw += DrawUI;
 
@@ -65,6 +91,8 @@ public sealed class Plugin : IDalamudPlugin
         // in response to the slash command, just toggle the display status of our main ui
         ToggleMainUI();
     }
+
+
 
     private void DrawUI() => WindowSystem.Draw();
 
